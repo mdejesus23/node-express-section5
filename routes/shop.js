@@ -3,12 +3,15 @@ const path = require("path");
 const express = require("express");
 
 const rootDir = require("../util/path");
+const adminData = require("./admin");
 
 const router = express.Router();
 
 // exact matching using method and exact path.
 router.get("/", (req, res, next) => {
-  res.sendFile(path.join(rootDir, "views", "shop.html"));
+  const products = adminData.products;
+  // render method use to render the default templating engine.
+  res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
 });
 
 module.exports = router;
