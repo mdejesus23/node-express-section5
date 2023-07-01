@@ -2,10 +2,20 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const expressHbs = require("express-handlebars");
 
 const app = express();
 
-app.set("view engine", "pug");
+// set our view engine, in pug engine you can use this in express.js out of the box. but in handlebars you should import it.
+app.engine(
+  "hbs",
+  expressHbs({
+    layoutsDir: "views/layouts",
+    defaultLayout: "main-layout",
+    extname: "hbs",
+  })
+);
+app.set("view engine", "hbs");
 app.set("views", "views");
 
 // import

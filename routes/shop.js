@@ -11,7 +11,14 @@ const router = express.Router();
 router.get("/", (req, res, next) => {
   const products = adminData.products;
   // render method use to render the default templating engine.
-  res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
+  res.render("shop", {
+    prods: products,
+    pageTitle: "Shop",
+    path: "/",
+    hasProducts: products.length > 0,
+    activeShop: true,
+    productCss: true,
+  });
 });
 
 module.exports = router;
