@@ -10,9 +10,13 @@ const products = [];
 
 // implicity this routes start with /admin/add-product => GET
 router.get("/add-product", (req, res, next) => {
+  // we do render template with the special render method provided by express.js
   res.render("add-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
+    formsCSS: true,
+    productCSS: true,
+    activeAddProduct: true,
   });
 });
 
