@@ -2,29 +2,26 @@ const path = require("path");
 
 const express = require("express");
 
-const rootDir = require("../util/path");
+const adminController = require("../controllers/admin");
 
 const router = express.Router();
 
-const products = [];
-
 // implicity this routes start with /admin/add-product => GET
-router.get("/add-product", (req, res, next) => {
-  // we do render template with the special render method provided by express.js
-  res.render("add-product", {
-    pageTitle: "Add Product",
-    path: "/admin/add-product",
-    formsCSS: true,
-    productCSS: true,
-    activeAddProduct: true,
-  });
-});
+router.get("/add-product", adminController.getAddProduct);
+
+// implicity this routes start with /admin/products => GET
+router.get("/products", adminController.getProducts);
 
 // implicity this routes start with /admin/add-product => POST
-router.post("/add-product", (req, res, next) => {
-  products.push({ title: req.body.title });
-  res.redirect("/");
-});
+// this automatically gives us a request which puts all the input data and so on into its body.
+// this only works for posting data.
+router.post("/add-product", adminController.postAddProduct);
 
-exports.routes = router;
-exports.products = products;
+// I have use this dynamic path segment ":productId"
+router.get("/edit-product/:productId", adminController.getEditProduct);
+
+router.post("/edit-product", adminController.postEditProducts);
+
+router.post("/delete-product", adminController.postDeleteProduct);
+
+module.exports = router;
