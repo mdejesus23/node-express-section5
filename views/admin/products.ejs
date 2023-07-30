@@ -27,7 +27,8 @@
                                     </p>
                                 </div>
                                 <div class="card__actions">
-                                    <a href="/admin/edit-product/<%= product.id%>?edit=true" class="btn">Edit</a>
+                                    <!--this is where the dynamic routes segment came from the productId and the query params-->
+                                    <a href="/admin/edit-product/<%= product._id%>?edit=true" class="btn">Edit</a>
                                     <form action="/admin/delete-product" method="POST">
                                         <input type="hidden" value="<%= product.id %>" name="productId" />
                                         <button class="btn" type="submit">Delete</button>
