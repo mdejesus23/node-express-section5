@@ -1,7 +1,5 @@
-const mongodb = require("mongodb");
 const Product = require("../models/product");
 
-const ObjectId = mongodb.ObjectId;
 // thru this exports syntax we can have multiple exports in one file easily.
 exports.getAddProduct = (req, res, next) => {
   // we do render template with the special render method provided by express.js
@@ -25,7 +23,14 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(title, price, description, imageUrl);
+  const product = new Product(
+    title,
+    price,
+    description,
+    imageUrl,
+    null,
+    req.user._id
+  );
   product
     .save()
     .then((result) => {
@@ -74,7 +79,7 @@ exports.postEditProducts = (req, res, next) => {
     updatedPrice,
     updatedDesc,
     updatedImageUrl,
-    new ObjectId(prodId)
+    prodId
   );
   product
     .save()
@@ -101,17 +106,22 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
-// exports.postDeleteProduct = (req, res, next) => {
-//   const prodId = req.body.productId;
-//   Product.findByPk(prodId)
-//     .then((product) => {
-//       return product.destroy();
-//     })
-//     .then((result) => {
-//       console.log("Destroyed Product");
-//       res.redirect("/admin/products");
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     });
-// };
+exports.postDeleteProduct = async (req, res, next) => {
+  const prodId = req.body.productId;
+  try {
+    await Product.deleteById(prodId);
+    console.log("Destroyed Product");
+    res.redirect("/admin/products");
+  } catch (err) {
+    console.log(err);
+  }
+
+  // Product.deleteById(prodId)
+  //   .then((result) => {
+  //     console.log("Destroyed Product");
+  //     res.redirect("/admin/products");
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //   });
+};
