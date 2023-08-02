@@ -33,8 +33,8 @@ app.use(async (req, res, next) => {
   // }
   User.findById("64c91b47cc405b9691b9f91c")
     .then((user) => {
-      // user is the user object we find in the models we that came from the database.
-      req.user = user;
+      // user is the user object we find in the user models that came from the database.
+      req.user = new User(user.name, user.email, user.cart, user._id);
       next();
     })
     .catch((err) => {

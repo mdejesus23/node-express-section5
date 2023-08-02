@@ -29,7 +29,7 @@ exports.postAddProduct = (req, res, next) => {
     description,
     imageUrl,
     null,
-    req.user._id
+    req.user._id // this is the user we assign in the request object in the app.js in every request.
   );
   product
     .save()
