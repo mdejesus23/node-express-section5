@@ -44,17 +44,14 @@ class User {
         quantity: newQuantity,
       });
     }
-    // product details that will store in the cart document in the users collection mongodb.
-    const updatedCart = {
-      items: updatedCartItems,
-    };
+
     const db = getDb();
     // it updates the user in the users collection using _id;
     return db
       .collection("users")
       .updateOne(
         { _id: new mongodb.ObjectId(this._id) },
-        { $set: { cart: updatedCart } }
+        { $set: { cart: { items: updatedCartItems } } }
       );
   }
 
@@ -64,19 +61,23 @@ class User {
     // and now I don't pass an ID here because I'm not looking for a single ID
     // instead I pass an object because this allows me to use some special mongodb query operators of
     // which there are many covered in detail in my mongodb course or in the official docs of course but
-    // we are looking for the $in operator. And this operator takes an array of IDs and therefore
     // toArray() is used to easily convert that into javascript array.
     return (
       db
         .collection("products")
+        // we are looking for the $in operator. And this operator takes an array of IDs
+        // return array of products wrap as a promise receive in the then blocks as asynchronous
+        // therefore every ID which is in the array will be accepted and will get back a cursor which holds references to
+        // all products with one of the IDs mentioned in this array.
         .find({ _id: { $in: productsIds } })
         .toArray()
-        // return array of products wrap as a promise receive in the then blocks as asynchronous
+        // So in this then method, I'll have all my product data, an array of products for the products that were in my cart.
         .then((products) => {
           // map in every products in the array and return an array of objects with additional document/property named quantity.
           return products.map((prod) => {
+            // I'll return a new object for every product which is fine because every product is an object
             return {
-              // copy all the old product properties
+              // copy all the old product properties or keep all the data i retrieve.
               ...prod,
               // and add new property named quantity
               quantity: this.cart.items.find((item) => {
@@ -88,6 +89,41 @@ class User {
           });
         })
     );
+  }
+
+  async deleteItemCart(prodId) {
+    try {
+      const updatedCartItems = this.cart.items.filter((item) => {
+        return item.productId.toString() !== prodId.toString();
+      });
+
+      const db = getDb();
+      return db
+        .collection("users")
+        .updateOne(
+          { _id: new mongodb.ObjectId(this._id) },
+          { $set: { cart: { items: updatedCartItems } } }
+        );
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async addOrder() {
+    // reaching out to my database client.
+    const db = getDb();
+    return db
+      .collection("orders")
+      .insertOne(this.cart)
+      .then((result) => {
+        this.cart = { items: [] };
+        return db
+          .collection("users")
+          .updateOne(
+            { _id: new mongodb.ObjectId(this._id) },
+            { $set: { cart: { items: [] } } }
+          );
+      });
   }
 
   static async findById(userId) {
