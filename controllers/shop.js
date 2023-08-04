@@ -84,18 +84,18 @@ exports.postCartDeleteProduct = async (req, res, next) => {
   }
 };
 
-exports.postOrder = (req, res, next) => {
-  req.user
-    .addOrder()
-    .then((result) => {
-      res.redirect("/orders");
-    })
-    .catch((err) => console.log(err));
+exports.postOrder = async (req, res, next) => {
+  try {
+    await req.user.addOrder();
+    res.redirect("/orders");
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 exports.getOrders = (req, res, next) => {
   req.user
-    .getOrders({ include: ["products"] })
+    .getOrders()
     .then((orders) => {
       res.render("shop/orders", {
         path: "/orders",

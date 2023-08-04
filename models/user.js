@@ -55,20 +55,13 @@ class User {
       );
   }
 
+  // get cart return all the proucts in the user's cart
   getCart() {
     const db = getDb();
     const productsIds = this.cart.items.map((item) => item.productId);
-    // and now I don't pass an ID here because I'm not looking for a single ID
-    // instead I pass an object because this allows me to use some special mongodb query operators of
-    // which there are many covered in detail in my mongodb course or in the official docs of course but
-    // toArray() is used to easily convert that into javascript array.
     return (
       db
         .collection("products")
-        // we are looking for the $in operator. And this operator takes an array of IDs
-        // return array of products wrap as a promise receive in the then blocks as asynchronous
-        // therefore every ID which is in the array will be accepted and will get back a cursor which holds references to
-        // all products with one of the IDs mentioned in this array.
         .find({ _id: { $in: productsIds } })
         .toArray()
         // So in this then method, I'll have all my product data, an array of products for the products that were in my cart.
@@ -112,9 +105,17 @@ class User {
   async addOrder() {
     // reaching out to my database client.
     const db = getDb();
-    return db
-      .collection("orders")
-      .insertOne(this.cart)
+    return this.getCart()
+      .then((products) => {
+        const order = {
+          items: products,
+          user: {
+            _id: new mongodb.ObjectId(this._id),
+            name: this.name,
+          },
+        };
+        return db.collection("orders").insertOne(order);
+      })
       .then((result) => {
         this.cart = { items: [] };
         return db
@@ -124,6 +125,14 @@ class User {
             { $set: { cart: { items: [] } } }
           );
       });
+  }
+
+  getOrders() {
+    const db = getDb();
+    return db
+      .collection("orders")
+      .find({ "user._id": new mongodb.ObjectId(this._id) })
+      .toArray();
   }
 
   static async findById(userId) {
