@@ -63,24 +63,6 @@ class Product {
   }
 
   static async findById(prodId) {
-    // db is used to access the connected database instance.
-    // const db = getDb();
-
-    // return db
-    //   .collection("products")
-    //   .find({
-    //     // converts prodId to a valid ObjectId prop in mongodb.
-    //     _id: new mongodb.ObjectId(prodId),
-    //   })
-    //   .next()
-    //   .then((product) => {
-    //     console.log(product);
-    //     return product;
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   });
-
     try {
       const db = getDb();
       const product = await db

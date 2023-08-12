@@ -18,7 +18,7 @@ app.set("views", "views");
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 
-// parsing middleware. it is use to parse data from form request
+// parsing middleware. it is use to parse data from form the request
 app.use(bodyParser.urlencoded({ extended: false }));
 // this is a static middleware where you can serve files statically in express.js. files like css, image etc.
 app.use(express.static(path.join(__dirname, "public")));
@@ -31,7 +31,7 @@ app.use(async (req, res, next) => {
   // } catch(err) {
   //   console.log(err);
   // }
-  User.findById("64c91b47cc405b9691b9f91c")
+  User.findById("64cf7b22faddc4d8ebd0add1")
     .then((user) => {
       // user is the user object we find in the user models that came from the database.
       req.user = new User(user.name, user.email, user.cart, user._id);
