@@ -1,7 +1,8 @@
 const Product = require("../models/product");
+const Order = require("../models/order");
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/product-list", {
         prods: products,
@@ -31,7 +32,7 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/index", {
         prods: products,
@@ -46,7 +47,8 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    const products = await req.user.getCart();
+    const user = await req.user.populate("cart.items.productId");
+    const products = user.cart.items;
     res.render("shop/cart", {
       path: "/cart",
       pageTitle: "Your Cart",
@@ -65,7 +67,7 @@ exports.postCart = async (req, res, next) => {
     const product = await Product.findById(prodId);
 
     const result = await req.user.addToCart(product);
-    console.log(result);
+    // console.log(result);
     res.redirect("/cart");
   } catch (err) {
     console.log(err);
@@ -75,27 +77,42 @@ exports.postCart = async (req, res, next) => {
 exports.postCartDeleteProduct = async (req, res, next) => {
   try {
     const prodId = req.body.productId;
-
-    const result = await req.user.deleteItemCart(prodId);
-    console.log(result);
+    const result = await req.user.removeFromCart(prodId);
+    // console.log(result);
     res.redirect("/cart");
   } catch (err) {
     console.log(err);
   }
 };
 
-exports.postOrder = async (req, res, next) => {
-  try {
-    await req.user.addOrder();
-    res.redirect("/orders");
-  } catch (err) {
-    console.log(err);
-  }
+exports.postOrder = (req, res, next) => {
+  req.user
+    .populate("cart.items.productId")
+    .then((user) => {
+      const products = user.cart.items.map((item) => {
+        // product: value wrap in curly braces to create a new javascript object. _doc special field that mongoose have.
+        return { quantity: item.quantity, product: { ...item.productId._doc } };
+      });
+      const order = new Order({
+        products: products,
+        user: {
+          name: req.user.name,
+          userId: req.user,
+        },
+      });
+      return order.save();
+    })
+    .then(() => {
+      return req.user.clearCart();
+    })
+    .then(() => {
+      res.redirect("/orders");
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
+  Order.find({ "user.userId": req.user._id })
     .then((orders) => {
       res.render("shop/orders", {
         path: "/orders",
@@ -103,12 +120,7 @@ exports.getOrders = (req, res, next) => {
         orders: orders,
       });
     })
-    .catch((err) => console.log(err));
-};
-
-exports.getCheckout = (req, res, next) => {
-  res.render("shop/checkout", {
-    path: "/checkout",
-    pageTitle: "Checkout",
-  });
+    .catch((err) => {
+      console.log(err);
+    });
 };

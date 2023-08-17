@@ -4,12 +4,12 @@ const shopController = require("../controllers/shop");
 
 const router = express.Router();
 
-// exact matching using method and exact path.
+// // exact matching using method and exact path.
 router.get("/", shopController.getIndex);
 
 router.get("/products", shopController.getProducts);
 
-//dynamic segment
+// //dynamic segment
 router.get("/products/:productId", shopController.getProduct);
 
 router.get("/cart", shopController.getCart);
