@@ -9,8 +9,15 @@ let URI = `mongodb://${username}:${password}@ac-gjryfep-shard-00-00.qs0hxbq.mong
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const session = require("express-session");
+const MongoDBStore = require("connect-mongodb-session")(session);
 
 const app = express();
+
+const store = new MongoDBStore({
+  uri: URI,
+  collection: "session",
+});
 
 const errorController = require("./controllers/error");
 const User = require("./models/user");
@@ -24,25 +31,28 @@ app.set("views", "views");
 // import
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
+const authRoutes = require("./routes/auth");
 
 // parsing middleware. it is use to parse data from form the request
 app.use(bodyParser.urlencoded({ extended: false }));
+
 // this is a static middleware where you can serve files statically in express.js. files like css, image etc.
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use((req, res, next) => {
-  User.findById("64dccdc57b56c3f24510a4a9")
-    .then((user) => {
-      // user is the user object we find in the user models that came from the database.
-      req.user = user;
-      next();
-    })
-    .catch((err) => console.log(err));
-});
+// setup another middle to initialize session.
+app.use(
+  session({
+    secret: "my secret",
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+  })
+);
 
 // adding filter routes that starts with /admin
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 
 // .use is use to catch all middleware. to catch all types of request method.
 app.use(errorController.get404);
