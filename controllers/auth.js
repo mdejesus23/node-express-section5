@@ -15,13 +15,16 @@ exports.postLogin = (req, res, next) => {
       // by setting the user on the session we share it across request and its not valid for a single request.
       req.session.user = user;
       req.session.isLoggedIn = true;
-      res.redirect("/");
+      req.session.save((err) => {
+        console.log(err);
+        res.redirect("/");
+      });
     })
     .catch((err) => console.log(err));
 };
 
 exports.postLogout = (req, res, next) => {
-  // this is a method provided with out session package we are using.
+  // this is a method provided with our session package we are using.
   req.session.destroy((err) => {
     console.log(err);
     res.redirect("/");

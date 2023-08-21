@@ -50,7 +50,7 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    const user = await req.session.user;
+    const user = await req.user.populate("cart.items.productId");
     const products = user.cart.items;
     res.render("shop/cart", {
       path: "/cart",
@@ -70,7 +70,7 @@ exports.postCart = async (req, res, next) => {
     const prodId = req.body.productId;
     const product = await Product.findById(prodId);
 
-    const result = await req.session.user.addToCart(product);
+    const result = await req.user.addToCart(product);
     // console.log(result);
     res.redirect("/cart");
   } catch (err) {
@@ -81,7 +81,7 @@ exports.postCart = async (req, res, next) => {
 exports.postCartDeleteProduct = async (req, res, next) => {
   try {
     const prodId = req.body.productId;
-    const result = await req.session.user.removeFromCart(prodId);
+    const result = await req.user.removeFromCart(prodId);
     // console.log(result);
     res.redirect("/cart");
   } catch (err) {
@@ -90,7 +90,8 @@ exports.postCartDeleteProduct = async (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-  req.session.user
+  req.user
+
     .populate("cart.items.productId")
     .then((user) => {
       const products = user.cart.items.map((item) => {
@@ -100,14 +101,14 @@ exports.postOrder = (req, res, next) => {
       const order = new Order({
         products: products,
         user: {
-          name: req.session.user.name,
-          userId: req.session.user,
+          name: req.user.name,
+          userId: req.user,
         },
       });
       return order.save();
     })
     .then(() => {
-      return req.session.user.clearCart();
+      return req.user.clearCart();
     })
     .then(() => {
       res.redirect("/orders");
@@ -116,7 +117,7 @@ exports.postOrder = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-  Order.find({ "user.userId": req.session.user._id })
+  Order.find({ "user.userId": req.user._id })
     .then((orders) => {
       console.log("orders");
       console.log(orders);
