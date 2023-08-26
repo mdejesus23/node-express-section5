@@ -50,6 +50,8 @@
       <!--this is where the req.body.productId came from and access it to the admin controllers-->
       <input type="hidden" value="<%= product._id %>" name="productId" />
       <% } %>
+
+      <input type="hidden" name="_csrf" value="<%= csrfToken%>" />
       <button class="btn" type="submit">
         <% if (editing) { %>Update Product<% } else { %>Add Product<% } %>
       </button>
