@@ -18,17 +18,21 @@
     <div class="form-control">
       <label for="email">E-mail</label>
       <input
+        class="<%= validationErrors.find(err => err.path === 'email') ? 'invalid' : ''%>"
         type="email"
         name="email"
         id="email"
+        value="<%= oldInput.email%>"
       />
     </div>
     <div class="form-control">
       <label for="password">Password</label>
       <input
+        class="<%= validationErrors.find(err => err.path === 'password') ? 'invalid' : ''%>"
         type="password"
         name="password"
         id="password"
+        value="<%= oldInput.password%>"
       />
     </div>
     <input type="hidden" name="_csrf" value="<%= csrfToken%>" />

@@ -1,10 +1,9 @@
 const path = require("path");
 
-const username = "dejesusmelnard";
-const password = "test123";
+const URI2 = require("./uri").URI;
 
 //URI for version 2.2 insert "shop" database name in the URI to connect to shop database by default.
-let URI = `mongodb://${username}:${password}@ac-gjryfep-shard-00-00.qs0hxbq.mongodb.net:27017,ac-gjryfep-shard-00-01.qs0hxbq.mongodb.net:27017,ac-gjryfep-shard-00-02.qs0hxbq.mongodb.net:27017/shop?ssl=true&replicaSet=atlas-u4kb2r-shard-0&authSource=admin&retryWrites=true&w=majority`;
+// let URI = `mongodb://${username}:${password}@ac-gjryfep-shard-00-00.qs0hxbq.mongodb.net:27017,ac-gjryfep-shard-00-01.qs0hxbq.mongodb.net:27017,ac-gjryfep-shard-00-02.qs0hxbq.mongodb.net:27017/shop?ssl=true&replicaSet=atlas-u4kb2r-shard-0&authSource=admin&retryWrites=true&w=majority`;
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -12,12 +11,12 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
-const flash = require("connect-flash");
+const flash = require("express-flash");
 
 const app = express();
 
 const store = new MongoDBStore({
-  uri: URI,
+  uri: URI2,
   collection: "session",
 });
 const csrfProtecttion = csrf();
@@ -81,7 +80,7 @@ app.use(authRoutes);
 app.use(errorController.get404);
 
 mongoose
-  .connect(URI)
+  .connect(URI2)
   .then((result) => {
     app.listen(3000, () => {
       console.log("app is running!");

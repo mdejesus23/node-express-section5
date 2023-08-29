@@ -1,5 +1,7 @@
 const Product = require("../models/product");
 
+const { validationResult } = require("express-validator");
+
 // thru this exports syntax we can have multiple exports in one file easily.
 exports.getAddProduct = (req, res, next) => {
   // we do render template with the special render method provided by express.js
@@ -9,6 +11,7 @@ exports.getAddProduct = (req, res, next) => {
     the name of the view template file and
     an optional object containing data that will be passed to the template for rendering.
   */
+
   if (!req.session.isLoggedIn) {
     return res.redirect("/login");
   }
@@ -16,6 +19,15 @@ exports.getAddProduct = (req, res, next) => {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
+    hasError: false,
+    errorMessage: null,
+    oldInput: {
+      title: "",
+      imageUrl: "",
+      price: "",
+      description: "",
+    },
+    validationErrors: [],
   });
 };
 
@@ -26,6 +38,26 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
+
+  const errors = validationResult(req); // collect all errors came from validator middleware in admin route.
+  if (!errors.isEmpty()) {
+    // console.log(errors.array());
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      hasError: true,
+      errorMessage: errors.array()[0].msg,
+      product: {
+        title: title,
+        imageUrl: imageUrl,
+        price: price,
+        description: description,
+      },
+      validationErrors: errors.array(),
+    });
+  }
+
   const product = new Product({
     title: title,
     price: price,
@@ -59,8 +91,10 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: "Edit Product",
         path: "/admin/edit-product",
         editing: editMode,
+        hasError: false,
         product: product,
-        isAuthenticated: req.session.isLoggedIn,
+        errorMessage: null,
+        validationErrors: [],
       });
     })
     .catch((err) => {
@@ -75,16 +109,39 @@ exports.postEditProducts = (req, res, next) => {
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
 
+  const errors = validationResult(req); // collect all errors came from validator middleware in admin route.
+  if (!errors.isEmpty()) {
+    // console.log(errors.array());
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/edit-product",
+      editing: true,
+      hasError: true,
+      errorMessage: errors.array()[0].msg,
+      product: {
+        _id: prodId,
+        title: updatedTitle,
+        imageUrl: updatedImageUrl,
+        price: updatedPrice,
+        description: updatedDesc,
+      },
+      validationErrors: errors.array(),
+    });
+  }
+
   Product.findById(prodId)
     .then((product) => {
+      // add protection to not allow other user to edit the other products
+      if (product.userId.toString() !== req.user._id.toString()) {
+        return res.redirect("/");
+      }
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
       product.imageUrl = updatedImageUrl;
-      return product.save();
-    })
-    .then((result) => {
-      res.redirect("/admin/products");
+      return product.save().then((result) => {
+        res.redirect("/admin/products");
+      });
     })
     .catch((err) => {
       console.log(err);
@@ -92,7 +149,8 @@ exports.postEditProducts = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.find()
+  Product.find({ userId: req.user._id })
+    // every then block implicitly returns a new promise.
     .then((products) => {
       res.render("admin/products", {
         prods: products,
@@ -108,7 +166,7 @@ exports.getProducts = (req, res, next) => {
 exports.postDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
 
-  Product.findByIdAndRemove(prodId)
+  Product.deleteOne({ _id: prodId, userId: req.user._id }) // adding filter prodId and userId
     .then(() => {
       console.log("Destroyed Product");
       res.redirect("/admin/products");
