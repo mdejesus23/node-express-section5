@@ -11,7 +11,9 @@ exports.getProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };
 
@@ -27,7 +29,9 @@ exports.getProduct = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };
 
@@ -41,7 +45,9 @@ exports.getIndex = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };
 
@@ -57,7 +63,9 @@ exports.getCart = async (req, res, next) => {
     // console.log("execute get cart in shop controller");
     // console.log(products);
   } catch (err) {
-    console.log(err);
+    const error = new Error(err); // create error object with the build-in new Error keyword.
+    error.httpStatusCode = 500; // set property of error object we created
+    return next(error);
   }
 };
 
@@ -70,7 +78,9 @@ exports.postCart = async (req, res, next) => {
     // console.log(result);
     res.redirect("/cart");
   } catch (err) {
-    console.log(err);
+    const error = new Error(err); // create error object with the build-in new Error keyword.
+    error.httpStatusCode = 500; // set property of error object we created
+    return next(error);
   }
 };
 
@@ -81,7 +91,9 @@ exports.postCartDeleteProduct = async (req, res, next) => {
     // console.log(result);
     res.redirect("/cart");
   } catch (err) {
-    console.log(err);
+    const error = new Error(err); // create error object with the build-in new Error keyword.
+    error.httpStatusCode = 500; // set property of error object we created
+    return next(error);
   }
 };
 
@@ -108,7 +120,11 @@ exports.postOrder = (req, res, next) => {
     .then(() => {
       res.redirect("/orders");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
+    });
 };
 
 exports.getOrders = (req, res, next) => {
@@ -123,6 +139,8 @@ exports.getOrders = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };

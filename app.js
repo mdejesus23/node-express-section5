@@ -54,11 +54,18 @@ app.use(csrfProtecttion);
 app.use(flash());
 
 app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
+app.use((req, res, next) => {
   if (!req.session.user) {
     return next();
   }
   User.findById(req.session.user._id)
     .then((user) => {
+      // throw new Error("Dummy");
       if (!user) {
         return next();
       }
@@ -67,14 +74,8 @@ app.use((req, res, next) => {
     })
     // catch block will only fires if any technical issues occur. if the database is down. etc.
     .catch((err) => {
-      throw new Error(err);
+      next(new Error(err));
     });
-});
-
-app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
 });
 
 // adding filter routes that starts with /admin
@@ -91,7 +92,12 @@ app.use(errorController.get404);
 // it will execute and skip all other middleware if you call next(error) wit error object pass to it.
 // if we have more than one-handling middleware they execute from top to bottom.
 app.use((error, req, res, next) => {
-  res.redirect("/500");
+  // res.redirect("/500");
+  res.status(500).render("500", {
+    pageTitle: "Error",
+    path: "/500",
+    isAuthenticated: req.session.isLoggedIn,
+  });
 });
 
 mongoose

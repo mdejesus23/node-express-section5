@@ -61,7 +61,6 @@ exports.postAddProduct = (req, res, next) => {
   }
 
   const product = new Product({
-    _id: new mongoose.Types.ObjectId("64ecbe4a07a81ecf70ff1d3d"),
     title: title,
     price: price,
     description: description,
@@ -104,7 +103,9 @@ exports.getEditProduct = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error); // we let express know that an error occurred and will skip all other middleware and move rigth away to error handler middleware.
     });
 };
 
@@ -168,7 +169,9 @@ exports.getProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };
 
@@ -181,6 +184,8 @@ exports.postDeleteProduct = async (req, res, next) => {
       res.redirect("/admin/products");
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };

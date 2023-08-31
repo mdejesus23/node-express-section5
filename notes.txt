@@ -23,3 +23,10 @@ asynchronouse (readfile, interact to database) code - then-catch. catch executed
 No error is thrown
 we just have to check the values with if checks and decide wheather we want to throw an error.
 or directly handle the error.
+
+
+error in synchronous - in synchronous places, so outside of callbacks and promises, you throw an error and express will detect this and execute your next error handling middleware. 
+error in asynchronous - Inside of async code, so inside of then, catch or callbacks, this does not work however. Inside of that, you have to use next with an error included.
+ So this is then detected by express again and this is what we used in the other files and inside of async code snippets, you need to use next wrapping that error, outside you can just throw that error.
+
+ setting status codes does not mean that the response is incomplete or the app crashed!

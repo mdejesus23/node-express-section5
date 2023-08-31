@@ -72,49 +72,55 @@ exports.postLogin = (req, res, next) => {
 
   // user is the user object we find in the user models that came from the database.
   // by setting the user on the session we share it across request and its not valid for a single request.
-  User.findOne({ email: email }).then((user) => {
-    if (!user) {
-      // req.flash("error", "Invalid email or password.");
-      // console.log(req.flash("error"));
-      return res.status(422).render("auth/login", {
-        path: "/login",
-        pageTitle: "Login",
-        errorMessage: "Invalid email or password.",
-        oldInput: { email: email, password: password },
-        validationErrors: [],
-      });
-    }
-
-    // if email input exist on the database will proceed below.
-    bcrypt
-      .compare(password, user.password)
-      // the then block will execute wheater the compare method matched or not matched
-      .then((doMatch) => {
-        // console.log(doMatch);
-        // in this point user exist and check password if match
-        if (doMatch) {
-          req.session.user = user;
-          req.session.isLoggedIn = true;
-          return req.session.save((err) => {
-            // console.log(err);
-            console.log("post login runs");
-            res.redirect("/");
-          });
-        }
-        // if password didn't match
-        res.status(422).render("auth/login", {
+  User.findOne({ email: email })
+    .then((user) => {
+      if (!user) {
+        // req.flash("error", "Invalid email or password.");
+        // console.log(req.flash("error"));
+        return res.status(422).render("auth/login", {
           path: "/login",
           pageTitle: "Login",
           errorMessage: "Invalid email or password.",
           oldInput: { email: email, password: password },
           validationErrors: [],
         });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.redirect("/login");
-      });
-  });
+      }
+
+      // if email input exist on the database will proceed below.
+      bcrypt
+        .compare(password, user.password)
+        // the then block will execute wheater the compare method matched or not matched
+        .then((doMatch) => {
+          // console.log(doMatch);
+          // in this point user exist and check password if match
+          if (doMatch) {
+            req.session.user = user;
+            req.session.isLoggedIn = true;
+            return req.session.save((err) => {
+              // console.log(err);
+              console.log("post login runs");
+              res.redirect("/");
+            });
+          }
+          // if password didn't match
+          res.status(422).render("auth/login", {
+            path: "/login",
+            pageTitle: "Login",
+            errorMessage: "Invalid email or password.",
+            oldInput: { email: email, password: password },
+            validationErrors: [],
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          res.redirect("/login");
+        });
+    })
+    .catch((err) => {
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
+    });
   // the password we extracted and want to check from our request body and the hashed value of the existing user.
 };
 
@@ -162,7 +168,9 @@ exports.postSignup = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };
 
@@ -222,7 +230,9 @@ exports.postReset = (req, res, next) => {
         });
       })
       .catch((err) => {
-        console.log(err);
+        const error = new Error(err); // create error object with the build-in new Error keyword.
+        error.httpStatusCode = 500; // set property of error object we created
+        return next(error);
       });
   });
 };
@@ -248,9 +258,10 @@ exports.getNewPassword = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
-  let message = req.flash("error");
 };
 
 exports.postNewPassword = (req, res, next) => {
@@ -278,6 +289,8 @@ exports.postNewPassword = (req, res, next) => {
       res.redirect("/login");
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
     });
 };
