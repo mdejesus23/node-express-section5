@@ -63,7 +63,8 @@ router.post(
     )
       .isLength({ min: 5 })
       .isAlphanumeric()
-      .trim(), // trim excess white space.
+      .trim(),
+    // trim excess white space.
     body("confirmPassword")
       .trim()
       .custom((value, { req }) => {

@@ -48,7 +48,7 @@
       </div>
       <div class="form-control">
         <label for="description">Description</label>
-        <textarea name="description" id="description" rows="5"><% if (editing || hasError) { %><%= product.description %><% } %></textarea>
+        <textarea class="<%= validationErrors.find(err => err.path === 'description') ? 'invalid' : ''%>" name="description" id="description" rows="5"><% if (editing || hasError) { %><%= product.description %><% } %></textarea>
       </div>
       <% if (editing) { %>
       <!--this is where the req.body.productId came from and access it to the admin controllers-->
