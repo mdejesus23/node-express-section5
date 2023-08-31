@@ -1,0 +1,25 @@
+different types of error
+
+1. Technical/network error
+-mongodb server is down
+-show error page to user
+
+2. Expected Errors
+-file can't be read database operation fails
+-inform user, possibly retry.
+
+3. Bugs/Logical Errors
+-user object used when it doesn't exist.
+-fix during development.
+
+Working with Errors
+Error is thrown
+error is a technical object in a node application
+there is a error object that we can thrown.
+
+synchronous code (code execute line by line, when we dont interact wit files or dont send request.)  - try-catch block
+asynchronouse (readfile, interact to database) code - then-catch. catch executed with any error in the then blocks.
+
+No error is thrown
+we just have to check the values with if checks and decide wheather we want to throw an error.
+or directly handle the error.

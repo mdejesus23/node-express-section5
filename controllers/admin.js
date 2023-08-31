@@ -1,5 +1,7 @@
 const Product = require("../models/product");
 
+const mongoose = require("mongoose");
+
 const { validationResult } = require("express-validator");
 
 // thru this exports syntax we can have multiple exports in one file easily.
@@ -59,6 +61,7 @@ exports.postAddProduct = (req, res, next) => {
   }
 
   const product = new Product({
+    _id: new mongoose.Types.ObjectId("64ecbe4a07a81ecf70ff1d3d"),
     title: title,
     price: price,
     description: description,
@@ -71,7 +74,10 @@ exports.postAddProduct = (req, res, next) => {
       res.redirect("/admin/products");
     })
     .catch((err) => {
-      console.log(err);
+      // res.redirect("/500");
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error); // we let express know that an error occurred and will skip all other middleware and move rigth away to error handler middleware.
     });
 };
 
@@ -144,7 +150,10 @@ exports.postEditProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      // res.redirect("/500");
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error); // we let express know that an error occurred and will skip all other middleware and move rigth away to error handler middleware.
     });
 };
 
