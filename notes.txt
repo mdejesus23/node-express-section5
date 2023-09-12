@@ -30,3 +30,16 @@ error in asynchronous - Inside of async code, so inside of then, catch or callba
  So this is then detected by express again and this is what we used in the other files and inside of async code snippets, you need to use next wrapping that error, outside you can just throw that error.
 
  setting status codes does not mean that the response is incomplete or the app crashed!
+
+ stream is a stream of data that flows from one place to another
+ buffer is a temporary memory that stores a chunk of data and passed it to a stream from one place to another.
+
+Now the file already gets stored on our file system
+and this is how you should store it,
+you should not store data like this in the database, files should not be stored in a database,
+they are too big,
+it's too inefficient to store them in a database and query them from there.
+
+store file in the file system.
+
+

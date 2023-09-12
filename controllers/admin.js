@@ -1,8 +1,10 @@
 const Product = require("../models/product");
+const fileHelper = require("../util/file");
 
 const mongoose = require("mongoose");
 
 const { validationResult } = require("express-validator");
+const product = require("../models/product");
 
 // thru this exports syntax we can have multiple exports in one file easily.
 exports.getAddProduct = (req, res, next) => {
@@ -37,11 +39,30 @@ exports.postAddProduct = (req, res, next) => {
   // this automatically gives us a request which puts all the input data and so on into its body.
   // this only works for posting data.
   const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
+  const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
+  if (!image) {
+    // if its undefine it meaning that multer decline the incoming file.
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      hasError: true,
+      product: {
+        title: title,
+        price: price,
+        description: description,
+      },
+      errorMessage: "Attached file is not an image",
+      validationErrors: [],
+    });
+  }
+
+  const imageUrl = image.path; // image path is a path to the file system with image directory.
 
   const errors = validationResult(req); // collect all errors came from validator middleware in admin route.
+
   if (!errors.isEmpty()) {
     // console.log(errors.array());
     return res.status(422).render("admin/edit-product", {
@@ -52,7 +73,6 @@ exports.postAddProduct = (req, res, next) => {
       errorMessage: errors.array()[0].msg,
       product: {
         title: title,
-        imageUrl: imageUrl,
         price: price,
         description: description,
       },
@@ -113,8 +133,13 @@ exports.postEditProducts = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
+  const image = req.file;
   const updatedDesc = req.body.description;
+
+  // if the image is undefined (if file type is invalid or not provided in the client request) image will not be save.
+  // if (image) {
+  //   product.imageUrl = image.path;
+  // }
 
   const errors = validationResult(req); // collect all errors came from validator middleware in admin route.
   if (!errors.isEmpty()) {
@@ -128,7 +153,6 @@ exports.postEditProducts = (req, res, next) => {
       product: {
         _id: prodId,
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
         price: updatedPrice,
         description: updatedDesc,
       },
@@ -145,7 +169,12 @@ exports.postEditProducts = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
-      product.imageUrl = updatedImageUrl;
+
+      // if the image is undefined (if file type is invalid or not provided in the client request) image will not be save.
+      if (image) {
+        fileHelper.deleteFile(product.imageUrl);
+        product.imageUrl = image.path; // image path is a path to the file system with image directory.
+      }
       return product.save().then((result) => {
         res.redirect("/admin/products");
       });
@@ -178,7 +207,14 @@ exports.getProducts = (req, res, next) => {
 exports.postDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
 
-  Product.deleteOne({ _id: prodId, userId: req.user._id }) // adding filter prodId and userId
+  Product.findById(prodId)
+    .then((product) => {
+      if (!product) {
+        return next(new Error("Product not found!"));
+      }
+      fileHelper.deleteFile(product.imageUrl);
+      return Product.deleteOne({ _id: prodId, userId: req.user._id }); // adding filter prodId and userId
+    })
     .then(() => {
       console.log("Destroyed Product");
       res.redirect("/admin/products");

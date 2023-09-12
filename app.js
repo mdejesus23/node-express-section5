@@ -12,6 +12,10 @@ const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
 const flash = require("express-flash");
+const multer = require("multer");
+
+const errorController = require("./controllers/error");
+const User = require("./models/user");
 
 const app = express();
 
@@ -21,8 +25,30 @@ const store = new MongoDBStore({
 });
 const csrfProtecttion = csrf();
 
-const errorController = require("./controllers/error");
-const User = require("./models/user");
+// configuration object
+//  Disk storage is in the end a storage engine which you can use with multer
+// It takes two keys, it takes the destination and it takes the file name.
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images"); // null if its error or empty
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
+  },
+});
+
+// filter function to filter incoming file before it save through its file type.
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true); // null as an error and true if want to accept the file.
+  } else {
+    cb(null, false); // false means file not accepted.
+  }
+};
 
 // the "view engine" is a special configuration to set ejs as a template engine.
 // a reserved confituration key which is understood by express.js
@@ -36,10 +62,18 @@ const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 
 // parsing middleware. it is use to parse data from form the request
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: false })); // urlencoded refers to text data/input.
+
+//initialize multer and setup a middleware to parse text and binary data from the request object.
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
 
 // this is a static middleware where you can serve files statically in express.js. files like css, image etc.
 app.use(express.static(path.join(__dirname, "public")));
+// and the reason for that is that express assumes that the files in the images folder are served as if they were in the root folder, so slash nothing.
+// if we have a request that goes to /images, that starts with /images, then serve these files statically and now /images is the folder we assume for this static serving
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 // setup another middleware to initialize session.
 app.use(

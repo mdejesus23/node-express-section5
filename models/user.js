@@ -30,7 +30,7 @@ const userSchema = new Schema({
 
 userSchema.methods.addToCart = function (product) {
   const cartProductIndex = this.cart.items.findIndex((cp) => {
-    // use toString to convert type and matche both.
+    // use toString to convert type and match both.
     return cp.productId.toString() === product._id.toString();
   });
 
