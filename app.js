@@ -137,10 +137,11 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(URI2)
   .then((result) => {
-    app.listen(3000, () => {
+    app.listen(3002, () => {
       console.log("app is running!");
     });
   })
   .catch((err) => {
+    console.log("error database");
     console.log(err);
   });
