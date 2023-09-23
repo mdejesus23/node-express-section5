@@ -1,6 +1,11 @@
 const Product = require("../models/product");
 const Order = require("../models/order");
 
+const { secrete_key } = require("../uri");
+const stripe = require("stripe")(
+  "sk_test_51NtPxTImxVMhiCpZASeXb0THiw4n6Pi9FdLagh7FA7BSUKEQEwi5qAP35XorOHMde5rfPpiqVDBTpIIIDqtKTWeL00AX9SCRK1"
+);
+
 // gloal object
 const ITEMS_PER_PAGE = 2;
 
@@ -138,6 +143,85 @@ exports.postCartDeleteProduct = async (req, res, next) => {
     error.httpStatusCode = 500; // set property of error object we created
     return next(error);
   }
+};
+
+exports.getCheckout = async (req, res, next) => {
+  let products;
+  let total = 0;
+  try {
+    const user = await req.user.populate("cart.items.productId");
+    products = user.cart.items;
+    products.forEach((p) => {
+      total += p.quantity * p.productId.price;
+    });
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"], // referes to credit card payments
+      mode: "payment",
+      line_items: products.map((p) => {
+        // line items is product to checkout
+        return {
+          quantity: p.quantity,
+          price_data: {
+            currency: "usd", // us dollars
+            unit_amount: p.productId.price * 100, // because we specify this in cents
+            product_data: {
+              name: p.productId.title,
+              description: p.productId.description,
+            },
+          },
+        };
+      }),
+      customer_email: req.user.email,
+      success_url: req.protocol + "://" + req.get("host") + "/checkout/success",
+      cancel_url: req.protocol + "://" + req.get("host") + "/checkout/cancel",
+    });
+
+    res.render("shop/checkout", {
+      path: "/checkout",
+      pageTitle: "Checkout",
+      products: products,
+      totalSum: total,
+      sessionId: session.id,
+    });
+    // console.log("execute get cart in shop controller");
+    // console.log(products);
+  } catch (err) {
+    const error = new Error(err); // create error object with the build-in new Error keyword.
+    error.httpStatusCode = 500; // set property of error object we created
+    return next(error);
+  }
+};
+
+exports.getCheckoutSuccess = (req, res, next) => {
+  req.user
+    .populate("cart.items.productId")
+    .then((user) => {
+      console.log(user);
+      const products = user.cart.items.map((item) => {
+        // product: value wrap in curly braces to create a new javascript object. _doc special field that mongoose have.
+        return { quantity: item.quantity, product: { ...item.productId._doc } };
+      });
+      const order = new Order({
+        products: products,
+        user: {
+          email: req.user.email,
+          userId: req.user,
+        },
+      });
+      return order.save();
+    })
+    .then(() => {
+      return req.user.clearCart();
+    })
+    .then(() => {
+      res.redirect("/orders");
+    })
+    .catch((err) => {
+      const error = new Error(err); // create error object with the build-in new Error keyword.
+      error.httpStatusCode = 500; // set property of error object we created
+      return next(error);
+    });
 };
 
 exports.postOrder = (req, res, next) => {

@@ -126,7 +126,7 @@ app.use(errorController.get404);
 // it will execute and skip all other middleware if you call next(error) wit error object pass to it.
 // if we have more than one-handling middleware they execute from top to bottom.
 app.use((error, req, res, next) => {
-  // res.redirect("/500");
+  console.log(error); // to debug error we are getting in our apps.
   res.status(500).render("500", {
     pageTitle: "Error",
     path: "/500",
